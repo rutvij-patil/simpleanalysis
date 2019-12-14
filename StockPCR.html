@@ -1,0 +1,117 @@
+<html lang="en">
+<head>
+  <title>The Stock PCR</title>
+  <script src="Chart.min.js"></script>
+</head>
+<body>
+    <h1>Search  STOCK for PCR</h1>
+    <input id="stock"></input>
+    <button type="button" onclick="DisplayChart();">Get PCR Data</button>
+    <a href="Index.html">Home</a>
+    <br>
+    <br>
+    <canvas id="myChart" width="700" height="500"></canvas>
+</body>
+<script>
+    
+    var myChart ;
+    const xLabels = [];
+    const xValues = []; 
+    const xBackgroundColor = []; 
+    const xBorderColor = []; 
+    var BGCount;
+    var BorderCount;
+
+    async function GetData(inputVal)
+    {
+        const response = await fetch('StockPCR.csv');
+        const table = await response.text();
+        const rows = table.split('\n').slice(1);
+        xLabels.length = 0;
+        xValues.length = 0;
+        xBackgroundColor.length = 0;
+        xBorderColor.length = 0;
+        BGCount = 0;
+        BorderCount = 0;
+
+        rows.forEach(row => {
+            const columns = row.split(',');
+            const Stock = columns[0];
+            const PCR = columns[1];
+            const tradeDate = columns[2];
+            if(Stock == inputVal)
+            {
+                xLabels.push(tradeDate);
+                xValues.push(PCR);
+                if(BGCount > 5) BGCount=0;
+                if(BorderCount > 5) BorderCount=0;
+                xBackgroundColor.push(backgroundColor());
+                xBorderColor.push(borderColor());
+                BGCount = BGCount + 1;
+                BorderCount = BorderCount + 1;
+            }
+        });
+    }
+
+    function backgroundColor() {
+
+        if(BGCount == 0) return "rgba(255, 99, 132, 0.2)";
+        if(BGCount == 1) return "rgba(54, 162, 235, 0.2)";
+        if(BGCount == 2) return "rgba(255, 206, 86, 0.2)";
+        if(BGCount == 3) return "rgba(75, 192, 192, 0.2)";
+        if(BGCount == 4) return  "rgba(153, 102, 255, 0.2)";
+        if(BGCount == 5) return  "rgba(255, 159, 64, 0.2)";
+    }
+
+    function borderColor() {
+        if(BorderCount == 0) return "rgba(255, 99, 132, 1)";
+        if(BorderCount == 1) return "rgba(54, 162, 235, 1)";
+        if(BorderCount == 2) return "rgba(255, 206, 86, 1)";
+        if(BorderCount == 3) return "rgba(75, 192, 192, 1)";
+        if(BorderCount == 4) return  "rgba(153, 102, 255, 1)";
+        if(BorderCount == 5) return  "rgba(255, 159, 64, 1)";
+    }
+
+    async function DisplayChart()
+    {
+        var inputVal = document.getElementById("stock").value.toUpperCase();
+        await GetData(inputVal);
+       
+        var Canvas = document.getElementById('myChart')
+        Canvas.parentNode.removeChild(Canvas); 
+
+        Canvas = document.createElement('canvas');
+        Canvas.id = 'myChart';
+        Canvas.width = 700;
+        Canvas.height = 500;
+        document.body.appendChild(Canvas); 
+
+        const ctx = Canvas.getContext('2d');
+        myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: xLabels,
+                datasets: [{
+                    label: inputVal + ' PCR',
+                    data: xValues,
+                    backgroundColor: xBackgroundColor,
+                    borderColor: xBorderColor,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: false,
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }]
+                }
+            }
+        });
+    }
+
+    </script>
+
+</html>
